@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Parking Lot Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom CSS for background, typography and specific elements not easily covered by Tailwind */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Using a light linear gradient for the background */
+            background-image: linear-gradient(to bottom right, #e0e7ff, #f0f2f5); /* Light blue to very light gray */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            
+            /* These flex properties ensure the main content block is centered horizontally */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centers items horizontally within the flex column */
+            padding: 20px; /* Add some padding around the content */
+            margin: 0; /* Ensure no default body margin */
+        }
+
+        /* The .container class already uses mx-auto (Tailwind) which means margin-left: auto; margin-right: auto;
+           This, combined with its max-width, horizontally centers the container itself. */
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin-bottom: 1.5rem;
+            width: 100%; /* Ensures card takes full width of its parent (.container) */
+            /* Removed fixed max-width from card; it will now naturally scale with the container's max-width */
+        }
+
+        /* Custom button styles (unchanged) */
+        .btn-primary {
+            background-image: linear-gradient(to right, #6366f1, #4f46e5); /* Gradient blue */
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(99, 102, 241, 0.4);
+            background-image: linear-gradient(to right, #4f46e5, #4338ca);
+        }
+
+        .btn-danger {
+            background-color: #ef4444; /* Red */
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-success {
+            background-color: #22c55e; /* Green */
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .btn-success:hover {
+            background-color: #16a34a;
+        }
+
+        .btn-outline-secondary {
+            background-color: transparent;
+            border: 1px solid #6b7280;
+            color: #6b7280;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+
+        /* Input field focus styling (unchanged) */
+        .form-control:focus {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3) !important;
+            outline: none !important;
+        }
+
+        /* Table styling (unchanged, but adjusted for no fixed card max-width) */
+        .table-auto {
+            width: 100%; /* Ensure table takes full width */
+        }
+        .table-auto th, .table-auto td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0; /* Light border */
+        }
+        .table-auto thead th {
+            background-color: #f1f5f9; /* Header background */
+            font-weight: 600;
+            color: #475569;
+        }
+        .table-auto tbody tr:nth-of-type(odd) {
+            background-color: #f8fafc; /* Lighter stripe */
+        }
+        .table-auto tbody tr:hover {
+            background-color: #eff6ff; /* Hover effect */
+        }
+
+
+        /* Parking slot visualization (unchanged) */
+        .slot-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Flexible grid for slots */
+            gap: 0.5rem;
+            padding: 1rem;
+            background-color: #ecf0f1;
+            border-radius: 1rem;
+            margin-top: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .parking-slot {
+            width: 60px;
+            height: 80px;
+            background-color: #d1d5db; /* Available */
+            border-radius: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #4b5563;
+            transition: background-color 0.3s ease;
+            position: relative;
+            overflow: hidden; /* Hide overflow for text */
+            line-height: 1.2;
+            padding-top: 5px; /* Adjust for text placement */
+        }
+
+        .parking-slot span {
+            z-index: 10; /* Bring text to front */
+        }
+
+        .parking-slot.occupied {
+            background-color: #ef4444; /* Red for occupied */
+            color: white;
+        }
+
+        .parking-slot.occupied::after {
+            content: '\f1b9'; /* Car icon */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.3);
+            bottom: 5px;
+            right: 5px;
+            opacity: 0.8;
+            z-index: 5; /* Behind text */
+        }
+
+        /* Confirmation Modal (unchanged) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 1rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center p-4">
+    <div class="container mx-auto mt-8 max-w-6xl"> 
+        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8 leading-tight">
+            Modern Parking Lot Management
+        </h1>
+
+        <div class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Parking Status</h2>
+            <div class="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0 md:space-x-8 text-center mb-6">
+                <div>
+                    <p class="text-gray-500 text-lg">Total Slots:</p>
+                    <p id="totalSlots" class="text-5xl font-bold text-indigo-600">20</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-lg">Occupied:</p>
+                    <p id="occupiedSlots" class="text-5xl font-bold text-red-500">0</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-lg">Available:</p>
+                    <p id="availableSlots" class="text-5xl font-bold text-green-500">20</p>
+                </div>
+            </div>
+
+            <div class="slot-container" id="parkingSlotsContainer">
+                </div>
+            <div class="flex justify-center mt-4">
+                <label for="numSlots" class="block text-gray-700 font-medium mr-2 self-center">Set Total Slots:</label>
+                <input type="number" id="numSlots" value="20" min="1" class="form-control px-3 py-2 border rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm w-24">
+                <button id="setSlotsBtn" class="btn-outline-secondary ml-2">Update Slots</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Add New Vehicle Entry</h2>
+            <form id="parkingForm" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div class="form-group">
+                    <label for="name" class="block text-gray-700 font-medium mb-1">Driver Name:</label>
+                    <input type="text" id="name" class="form-control block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="vehicleName" class="block text-gray-700 font-medium mb-1">Vehicle Type (e.g., Car, Bike):</label>
+                    <input type="text" id="vehicleName" class="form-control block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Honda City" required>
+                </div>
+                <div class="form-group">
+                    <label for="vehicleNumber" class="block text-gray-700 font-medium mb-1">Vehicle Number (Unique):</label>
+                    <input type="text" id="vehicleNumber" class="form-control block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="TN 01 AB 1234" required>
+                </div>
+                <div class="form-group">
+                    <label for="entryDate" class="block text-gray-700 font-medium mb-1">Entry Date & Time:</label>
+                    <input type="datetime-local" id="entryDate" class="form-control block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" required>
+                </div>
+                <div class="form-group col-span-full flex justify-end">
+                    <button type="submit" class="btn-primary">Add Vehicle to Lot</button>
+                </div>
+            </form>
+            <p id="formMessage" class="text-center text-sm mt-4 hidden"></p>
+        </div>
+
+        <div class="card overflow-x-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-700">Vehicles in Parking Lot</h2>
+                <button id="resetAllBtn" class="btn-danger">
+                    <i class="fas fa-redo mr-2"></i>Reset All Data
+                </button>
+            </div>
+            <table class="table-auto min-w-full divide-y divide-gray-200 shadow-sm rounded-lg overflow-hidden">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle No.</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Entry Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exit Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="vehicleTableBody" class="bg-white divide-y divide-gray-200">
+                    </tbody>
+            </table>
+            <p id="noVehiclesMessage" class="text-center text-gray-500 mt-4 hidden">No vehicles currently in the parking lot.</p>
+        </div>
+    </div>
+
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Confirm Deletion</h3>
+            <p class="text-gray-700 mb-6">Are you sure you want to delete this vehicle entry? This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button id="cancelDeleteBtn" class="btn-outline-secondary">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
